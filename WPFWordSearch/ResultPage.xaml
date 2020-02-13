@@ -7,10 +7,12 @@
       xmlns:search="clr-namespace:WordSearch.Search"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="Results">
+      Title="Results"
+      Loaded="Page_Loaded">
 
     <DockPanel>
         <ListView Name="lvResults" ScrollViewer.HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" MouseDoubleClick="lvResults_MouseDoubleClick">
+            
             <ListView.ItemTemplate>
                 <DataTemplate DataType="{x:Type search:SearchResult}">
 

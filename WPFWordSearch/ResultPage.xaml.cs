@@ -23,11 +23,13 @@ namespace WPFWordSearch
     /// </summary>
     public partial class ResultPage : Page
     {
+        private IEnumerable<SearchResult> searchResults;
+
         public ResultPage(IEnumerable<SearchResult> searchResults)
         {
             InitializeComponent();
 
-            this.lvResults.ItemsSource = searchResults;
+            this.searchResults = searchResults;
         }
 
         private void lvResults_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -45,6 +47,17 @@ namespace WPFWordSearch
             }
 
             Process.Start(searchResult.FilePath);
+        }
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (searchResults == null || !searchResults.Any())
+            {
+                MessageBox.Show("No matches were found.", "No results", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                this.NavigationService.GoBack();
+            }
+
+            this.lvResults.ItemsSource = searchResults;
         }
     }
 }
