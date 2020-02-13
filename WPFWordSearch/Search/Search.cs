@@ -172,13 +172,20 @@ namespace WordSearch.Search
 
             Word.Document document = this.application.Documents.Open(FileName: filePath, ReadOnly: true, Visible: false);
 
-            string documentText = String.Join(paragraphSeparator, document.StoryRanges.OfType<Word.Range>().SelectMany(r => r.Paragraphs.OfType<Word.Paragraph>()).Select(p => p.Range.Text)).Replace("\v", paragraphSeparator);
+            try
+            {
+                string documentText = String.Join(paragraphSeparator, document.StoryRanges.OfType<Word.Range>().SelectMany(r => r.Paragraphs.OfType<Word.Paragraph>()).Select(p => p.Range.Text)).Replace("\v", paragraphSeparator);
 
-            document.Close(SaveChanges: false);
+                document.Close(SaveChanges: false);
 
-            this.updateProcess($"Read file {this.Current + 1}/{this.Total} ({Path.GetFileNameWithoutExtension(filePath)})", this.Current, this.Total);
+                this.updateProcess($"Read file {this.Current + 1}/{this.Total} ({Path.GetFileNameWithoutExtension(filePath)})", this.Current, this.Total);
 
-            return documentText;
+                return documentText;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
         }
 
         private void OpenWord()
