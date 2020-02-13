@@ -20,3 +20,5 @@ To abort the search close the progress window.
 To open a Word file in the result view double click the corresponding line.
 
 ![Open](https://i.imgur.com/g6c1VV1.png)
+
+To get back to the search click the blue left arrow in the top-left of the result window.
