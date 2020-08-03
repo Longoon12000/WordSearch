@@ -73,7 +73,7 @@ namespace WordSearch.Search
                             FilePath = filePath,
                             Match = currentMatch,
                             BeforeMatch = documentText.Substring(Math.Max(match.Index - this.resultRadius, 0), this.resultRadius),
-                            AfterMatch = documentText.Substring(match.Index + match.Value.Length, documentText.Length - Math.Min(match.Index + match.Value.Length + this.resultRadius, documentText.Length))
+                            AfterMatch = documentText.Substring(match.Index + match.Value.Length, Math.Min(documentText.Length - (match.Index + match.Value.Length), this.resultRadius))
                         });
                     }
                     lastMatch = currentMatch;
