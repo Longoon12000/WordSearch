@@ -22,7 +22,7 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <Label Grid.Row="0" Grid.Column="0" Content="Path:" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            <Label Grid.Row="0" Grid.Column="0" Content="File:" HorizontalAlignment="Right" VerticalAlignment="Center" />
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="19*" />
@@ -34,15 +34,8 @@
                 <TextBox Grid.Row="0" Grid.Column="0" Name="txtPath" />
                 <Button Grid.Row="0" Grid.Column="1" Content="..." Click="btnBrowse_Click" />
             </Grid>
-            <CheckBox Grid.Row="0" Grid.Column="2" Name="cbRecursive" Content="Recursive" VerticalAlignment="Center"/>
-
-            <Label Grid.Row="1" Grid.Column="0" Content="Expression:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Name="txtExpression" />
-            <CheckBox Grid.Row="1" Grid.Column="2" Name="cbRegex" Content="RegEx" VerticalAlignment="Center" />
-
             <Label Grid.Row="2" Grid.Column="0" Content="Result width:" HorizontalAlignment="Right" VerticalAlignment="Center" />
             <TextBox Grid.Row="2" Grid.Column="1" Name="txtResultWidth" PreviewTextInput="txtResultWidth_PreviewTextInput" />
-            <CheckBox Grid.Row="2" Grid.Column="2" Name="cbParagraph" Content="Paragraph" VerticalAlignment="Center" Checked="cbParagraph_CheckedChanged" Unchecked="cbParagraph_CheckedChanged" />
 
             <Button Grid.Row="3" Grid.Column="1" Content="Search" Click="btnSearch_Click" />
         </Grid>

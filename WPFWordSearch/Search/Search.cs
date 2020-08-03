@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Word = Microsoft.Office.Interop.Word;
@@ -38,18 +39,18 @@ namespace WordSearch.Search
             this.Process?.Invoke(this.Status, this.Current, this.Total, this.Percentage);
         }
 
-        public SearchResult[] GetSearchResults(string[] files, string expression, bool regex)
+        public SearchResult[] GetSearchResults(string file)
         {
             this.OpenWord();
 
-            this.updateProcess($"Searching through {files.Length} files", 0, files.Length);
+            this.updateProcess($"Searching through {Path.GetFileNameWithoutExtension(file)}", 0, 1);
 
-            return files.SelectMany(f => this.findInDocument(f, readDocument(f), expression.ToLower(), regex)).ToArray();
+            return this.findInDocument(file, readDocument(file));
         }
 
         private readonly char[] trimmables = new char[] { ' ', '\r', '\n', '\t', '\v' };
 
-        private SearchResult[] findInDocument(string filePath, string documentText, string expression, bool regex)
+        private SearchResult[] findInDocument(string filePath, string documentText)
         {
             if (Token.IsCancellationRequested)
                 return new SearchResult[0];
@@ -57,106 +58,32 @@ namespace WordSearch.Search
             this.updateProcess($"Searching through file {this.Current + 1}/{this.Total} ({Path.GetFileNameWithoutExtension(filePath)})", this.Current, this.Total);
 
             List<SearchResult> searchResults = new List<SearchResult>();
-            string searchText = documentText.ToLower();
-            string[] splitDocument = documentText.Split(new string[] { paragraphSeparator }, StringSplitOptions.None);
-            string[] splitSearch = searchText.Split(new string[] { paragraphSeparator }, StringSplitOptions.None);
 
-            for (int i = 0; i < splitDocument.Length; i++)
+            MatchCollection matches = Regex.Matches(documentText, @"\[([0-9]+)\]");
+            if (matches.Count > 0)
             {
-                if (Token.IsCancellationRequested)
-                    return searchResults.ToArray();
-
-                string currentSearchText = splitSearch[i];
-                // normal search
-                int lastPosition = -1;
-                while (true)
+                int lastMatch = 0;
+                foreach (Match match in matches)
                 {
-                    if (Token.IsCancellationRequested)
-                        return searchResults.ToArray();
-
-                    lastPosition = currentSearchText.IndexOf(expression, lastPosition + 1);
-
-                    if (lastPosition == -1)
-                        break;
-
-                    // Try and find start of word
-                    int previousSpace = currentSearchText.LastIndexOf(' ', lastPosition);
-                    int previousBreak = currentSearchText.LastIndexOf('\r', lastPosition);
-
-                    int positionWordStart = Math.Max(previousSpace, previousBreak);
-                    if (positionWordStart == -1)
-                        positionWordStart = 0;
-
-                    // Try and find end of word
-                    int nextSpace = currentSearchText.IndexOf(' ', lastPosition);
-                    int nextBreak = currentSearchText.IndexOf('\r', lastPosition);
-                    if (nextSpace == -1) nextSpace = int.MaxValue;
-                    if (nextBreak == -1) nextBreak = int.MaxValue;
-
-                    int positionWordEnd = Math.Min(nextSpace, nextBreak);
-                    if (positionWordEnd == int.MaxValue)
-                        positionWordEnd = currentSearchText.Length;
-
-                    SearchResult result = new SearchResult
+                    int currentMatch = int.Parse(match.Groups[1].Value); // No cast validation required as regex guarantees an integer - except overflows!
+                    if (currentMatch != lastMatch + 1)
                     {
-                        FilePath = filePath,
-                        Match = splitDocument[i].Substring(positionWordStart, positionWordEnd - positionWordStart).Trim(trimmables)
-                    };
-
-                    if (this.resultRadius == -1)
-                    {
-                        // Whole paragraph
-                        result.BeforeMatch = splitDocument[i].Substring(0, positionWordStart).Trim(trimmables);
-                        result.AfterMatch = splitDocument[i].Substring(positionWordEnd, currentSearchText.Length - positionWordEnd).Trim(trimmables);
+                        searchResults.Add(new SearchResult()
+                        {
+                            FilePath = filePath,
+                            Match = currentMatch,
+                            BeforeMatch = documentText.Substring(Math.Max(match.Index - this.resultRadius, 0), this.resultRadius),
+                            AfterMatch = documentText.Substring(match.Index + match.Value.Length, documentText.Length - Math.Min(match.Index + match.Value.Length + this.resultRadius, documentText.Length))
+                        });
                     }
                     else
                     {
-                        // Specific length
-
-                        // before
-                        int index = i;
-                        int remainder = this.resultRadius;
-
-                        int startIndex = Math.Max(positionWordStart - remainder, 0);
-                        result.BeforeMatch = $"{splitDocument[index--].Substring(startIndex, positionWordStart - startIndex)}";
-                        remainder -= positionWordStart - startIndex;
-
-                        while (index >= 0 && remainder > 0)
-                        {
-                            startIndex = Math.Max(splitDocument[index].Length - remainder, 0);
-                            remainder -= splitDocument[index].Length - startIndex;
-                            result.BeforeMatch = $"{splitDocument[index].Substring(startIndex, splitDocument[index].Length - startIndex).Trim(trimmables)}{Environment.NewLine}{result.BeforeMatch}";
-                            index--;
-                        }
-
-                        // after
-                        index = i;
-                        remainder = this.resultRadius;
-
-                        int endIndex = Math.Min(positionWordEnd + remainder, currentSearchText.Length);
-                        result.AfterMatch += $"{splitDocument[index++].Substring(positionWordEnd, endIndex - positionWordEnd).Trim(trimmables)}{Environment.NewLine}";
-                        remainder -= endIndex - positionWordEnd;
-
-                        while (index < splitDocument.Length && remainder > 0)
-                        {
-                            endIndex = Math.Min(remainder, splitDocument[index].Length);
-                            remainder -= endIndex;
-                            result.AfterMatch += $"{splitDocument[index].Substring(0, endIndex).Trim(trimmables)}{Environment.NewLine}";
-                            index++;
-                        }
+                        lastMatch = currentMatch;
                     }
-
-                    result.AfterMatch = result.AfterMatch?.Trim(trimmables);
-                    result.BeforeMatch = result.BeforeMatch?.Trim(trimmables);
-
-                    searchResults.Add(result);
                 }
             }
 
-            // TODO: regex search
-
-            this.Current++;
-            this.updateProcess($"Completed file {this.Current}/{this.Total} ({Path.GetFileNameWithoutExtension(filePath)})", this.Current, this.Total);
+            this.updateProcess($"Completed file {Path.GetFileNameWithoutExtension(filePath)}", ++this.Current, this.Total);
 
             return searchResults.ToArray();
         }

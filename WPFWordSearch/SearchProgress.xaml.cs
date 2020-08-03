@@ -23,21 +23,15 @@ namespace WPFWordSearch
     {
         private Search search;
         private string path;
-        private bool recursive;
-        private string expression;
-        private bool isRegex;
 
         private CancellationTokenSource tokenSource;
 
         public SearchResult[] SearchResults { get; private set; }
 
-        public SearchProgress(Search search, string path, bool recursive, string expression, bool isRegex)
+        public SearchProgress(Search search, string path)
         {
             InitializeComponent();
             this.path = path;
-            this.recursive = recursive;
-            this.expression = expression;
-            this.isRegex = isRegex;
             this.search = search;
             this.search.Process += Search_Process;
         }
@@ -56,7 +50,7 @@ namespace WPFWordSearch
         {
             this.tokenSource = new CancellationTokenSource();
             this.search.Token = this.tokenSource.Token;
-            await Task.Run(() => this.SearchResults = this.search.GetSearchResults(WordFileLocator.FindWordFiles(this.path, this.recursive), this.expression, this.isRegex));
+            await Task.Run(() => this.SearchResults = this.search.GetSearchResults(this.path));
             this.Close();
         }
 

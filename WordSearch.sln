@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordSearch", "WordSearch\WordSearch.csproj", "{39D03D33-6DDF-497C-A940-ECC096160084}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFWordSearch", "WPFWordSearch\WPFWordSearch.csproj", "{A2B82078-F2C1-4175-B42D-57A6AE5E7900}"
 EndProject
 Global
@@ -13,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{39D03D33-6DDF-497C-A940-ECC096160084}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{39D03D33-6DDF-497C-A940-ECC096160084}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{39D03D33-6DDF-497C-A940-ECC096160084}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{39D03D33-6DDF-497C-A940-ECC096160084}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A2B82078-F2C1-4175-B42D-57A6AE5E7900}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A2B82078-F2C1-4175-B42D-57A6AE5E7900}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2B82078-F2C1-4175-B42D-57A6AE5E7900}.Release|Any CPU.ActiveCfg = Release|Any CPU

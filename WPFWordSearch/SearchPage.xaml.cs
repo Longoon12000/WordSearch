@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,28 +24,20 @@ namespace WPFWordSearch
     /// </summary>
     public partial class SearchPage : Page
     {
-        private FolderBrowserDialog folderBrowserDialog = default;
-        private RegistryKey registryKey;
+        private OpenFileDialog openFileDialog = default;
 
         public SearchPage()
         {
             InitializeComponent();
-
-            registryKey = Registry.CurrentUser.OpenSubKey("Software", true).CreateSubKey("WordSearch", true);
-            this.txtPath.Text = registryKey.GetValue("Path", "") as string;
-            this.cbRecursive.IsChecked = bool.Parse(registryKey.GetValue("Recursive", "True") as string);
-            this.txtExpression.Text = registryKey.GetValue("Expression", "") as string;
-            this.cbRegex.IsChecked = bool.Parse(registryKey.GetValue("Regex", "False") as string);
-            this.txtResultWidth.Text = registryKey.GetValue("Width", "80") as string;
-            this.cbParagraph.IsChecked = bool.Parse(registryKey.GetValue("Paragraph", "False") as string);
+            this.txtResultWidth.Text = "80";
         }
 
-        private void search(string path, bool recursive, string expression, bool regex, int resultWidth, bool paragraph)
+        private void search(string path, int resultWidth)
         {
             SearchProgress searchProgress;
-            using (Search search = new Search(paragraph ? -1 : resultWidth))
+            using (Search search = new Search(resultWidth))
             {
-                searchProgress = new SearchProgress(search, path, recursive, expression, regex);
+                searchProgress = new SearchProgress(search, path);
                 searchProgress.ShowDialog();
             }
 
@@ -58,58 +49,39 @@ namespace WPFWordSearch
             e.Handled = !this.numberValidation.IsMatch(e.Text);
         }
 
-        private void cbParagraph_CheckedChanged(object sender, RoutedEventArgs e)
-        {
-            this.txtResultWidth.IsEnabled = this.cbParagraph.IsChecked.HasValue ? !this.cbParagraph.IsChecked.Value : true;
-        }
-
         private void btnBrowse_Click(object sender, RoutedEventArgs e)
         {
 
-            if (this.folderBrowserDialog == default)
-                this.folderBrowserDialog = new FolderBrowserDialog();
+            if (this.openFileDialog == default)
+                this.openFileDialog = new OpenFileDialog()
+                {
+                    Filter = "Word Documents (*.doc;*.docx;*.docm)|*.doc;*.docx;*.docm"
+                };
 
-            if (this.folderBrowserDialog.ShowDialog() != DialogResult.OK)
+            if (this.openFileDialog.ShowDialog() != DialogResult.OK)
                 return;
 
-            this.txtPath.Text = this.folderBrowserDialog.SelectedPath;
+            this.txtPath.Text = this.openFileDialog.FileName;
         }
 
         private void btnSearch_Click(object sender, RoutedEventArgs e)
         {
             string path = txtPath.Text;
-            bool recursive = cbRecursive.IsChecked ?? false;
-            string expression = txtExpression.Text;
-            bool regex = cbRegex.IsChecked ?? false;
-            int resultWidth = cbParagraph.IsChecked ?? false ? -1 : int.Parse(txtResultWidth.Text);
-            bool paragraph = cbParagraph.IsChecked ?? false;
+            int resultWidth = int.Parse(txtResultWidth.Text);
 
             if (String.IsNullOrEmpty(path))
             {
-                System.Windows.MessageBox.Show("No search path was provided. Please enter or select a path to search in.", "Missing search path", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show("No file was provided. Please enter or select a file to search in.", "Missing search file", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            if (!Directory.Exists(path))
+            if (!File.Exists(path))
             {
-                System.Windows.MessageBox.Show($"The selected search path{Environment.NewLine}{path}{Environment.NewLine}does not exist! Please enter a valid path.", "Search path not found", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show($"The selected search file{Environment.NewLine}{path}{Environment.NewLine}does not exist! Please enter a valid file.", "Search file not found", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            if (String.IsNullOrEmpty(expression))
-            {
-                System.Windows.MessageBox.Show($"No search expression was provided. Please enter an expression to search.", "Missing search expression", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            registryKey.SetValue("Path", path);
-            registryKey.SetValue("Recursive", recursive);
-            registryKey.SetValue("Expression", expression);
-            registryKey.SetValue("Regex", regex);
-            registryKey.SetValue("Width", txtResultWidth.Text);
-            registryKey.SetValue("Paragraph", paragraph);
-
-            this.search(path, recursive, expression, regex, resultWidth, paragraph);
+            this.search(path, resultWidth);
         }
     }
 }
