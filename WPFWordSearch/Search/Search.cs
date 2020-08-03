@@ -76,10 +76,7 @@ namespace WordSearch.Search
                             AfterMatch = documentText.Substring(match.Index + match.Value.Length, documentText.Length - Math.Min(match.Index + match.Value.Length + this.resultRadius, documentText.Length))
                         });
                     }
-                    else
-                    {
-                        lastMatch = currentMatch;
-                    }
+                    lastMatch = currentMatch;
                 }
             }
 
